@@ -1,0 +1,27 @@
+/* AdminPage.css */
+
+.admin-page {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    width: 250px;
+    background-color: #343a40;
+    color: white;
+    padding-top: 20px;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 20px;
+  }
+  
+  .sidebar-col {
+    padding-left: 0;
+  }
+  
+  .content-col {
+    padding-left: 20px;
+  }
+  

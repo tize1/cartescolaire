@@ -3,6 +3,7 @@ import { Navbar, Nav, Form, Button, Container, Row, Col, Modal, DropdownButton, 
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'leaflet/dist/leaflet.css';
+import { Link } from 'react-router-dom';
 
 // Établissements avec leurs coordonnées et détails
 const establishments = [
@@ -94,9 +95,11 @@ function App() {
             <Button variant="outline-primary" onClick={handleShow}>
               Filtrer
             </Button>
+            
             <Button variant="outline-secondary" className="ms-3">
               Contacter
             </Button>
+            
           </Nav>
         </Navbar.Collapse>
       </Navbar>

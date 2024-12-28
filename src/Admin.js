@@ -11,12 +11,12 @@ const Admin = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mr-auto">
-            <Nav.Link href="home">Home</Nav.Link>
+          <Nav.Link><Link class="text-light" to="/">Home</Link></Nav.Link>
             <Nav.Link href="#features">Features</Nav.Link>
             <NavDropdown title="Settings" id="basic-nav-dropdown">
               <NavDropdown.Item href="#action/3.1">Profile</NavDropdown.Item>
               <NavDropdown.Item href="#action/3.2">Account Settings</NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.3">Logout</NavDropdown.Item>
+              <NavDropdown.Item href="#action/3.3"><Link to="/AuthAdmin">Logout</Link></NavDropdown.Item>
             </NavDropdown>
           </Nav>
         </Navbar.Collapse>
@@ -28,11 +28,13 @@ const Admin = () => {
           <Col md={3} className="bg-light p-3">
             <h4>Dashboard</h4>
             <ListGroup>
-              <ListGroup.Item action href="#link1">Dashboard</ListGroup.Item>
+              <ListGroup.Item action href="#link1"><Link to="/Admin">Dashboard</Link></ListGroup.Item>
               <ListGroup.Item action href="#link2">Manage Users</ListGroup.Item>
               <ListGroup.Item action href="#link3">Notifications</ListGroup.Item>
-              <ListGroup.Item action href="#link4">Manage School</ListGroup.Item>
-              <ListGroup.Item action href="#link5">Reports</ListGroup.Item>
+              <ListGroup.Item action href="#link4"><Link to="/">Manage School</Link></ListGroup.Item>
+              <ListGroup.Item action href="#link5"><Link to="/FormAddSchool">Add School</Link></ListGroup.Item>
+              <ListGroup.Item action href="#link6">Reports</ListGroup.Item>
+              <ListGroup.Item action href="#link7"><Link to="/AuthAdmin">Logout</Link></ListGroup.Item>
             </ListGroup>
           </Col>
 

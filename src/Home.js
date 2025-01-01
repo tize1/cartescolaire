@@ -74,7 +74,7 @@ function Home() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Données du formulaire :', formData);
+    console.log('Données du formulaire :', formData); // afficher les elements tries 
     handleClose();
   };
 

@@ -75,7 +75,7 @@ function FormAddSchool() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Formulaire soumis");
+    console.log("Formulaire soumis");   // ajouter le code d'enregistrement ici
   };
 
   return (

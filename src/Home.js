@@ -43,6 +43,7 @@ function Home() {
   useEffect(() => {
       fetchEtablissements();
   }, []);
+  console.log(etablissements);
 
 /*   // Gestion du chargement et des erreurs
   if (loading) {

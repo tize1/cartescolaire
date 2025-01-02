@@ -32,7 +32,7 @@ const Admin = () => {
               <ListGroup.Item action href="#link2">Manage Users</ListGroup.Item>
               <ListGroup.Item action href="#link3">Notifications</ListGroup.Item>
               <ListGroup.Item action href="#link4"><Link to="/">Manage School</Link></ListGroup.Item>
-              <ListGroup.Item action href="#link5"><Link to="/FormAddSchool">Add School</Link></ListGroup.Item>
+              <ListGroup.Item action href="#link5"><Link to="/AddEtablissement">Add School</Link></ListGroup.Item>
               <ListGroup.Item action href="#link6">Reports</ListGroup.Item>
               <ListGroup.Item action href="#link7"><Link to="/AuthAdmin">Logout</Link></ListGroup.Item>
             </ListGroup>

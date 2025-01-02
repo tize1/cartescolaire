@@ -21,7 +21,7 @@ function FormAddSchool() {
         <Form.Control type="number" step="0.000001" placeholder="Latitude" required />
       </FloatingLabel>
       <FloatingLabel controlId="imageURL" label="URL de l'image" className="mb-3">
-        <Form.Control type="url" placeholder="URL de l'image" />
+        <Form.Control type="file" placeholder="URL de l'image" />
       </FloatingLabel>
     </div>,
     <div key="step2">

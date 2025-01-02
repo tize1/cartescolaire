@@ -1,44 +1,11 @@
-import React, { useState } from 'react';
+import React, {  useEffect,useState  } from 'react';
 import { Navbar, Nav, Form, Button, Container, Row, Col, Modal } from 'react-bootstrap';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
-
-// Établissements avec leurs coordonnées, détails et notation
-const establishments = [
-  {
-    id: 1,
-    name: 'Établissement 1',
-    lat: 12.122,
-    lng: 15.045,
-    image: 'https://via.placeholder.com/150/FF5733/FFFFFF?text=Établissement+1',
-    details: 'Détails de l’établissement 1...',
-    rating: 4,  // Notation sur 5
-    link: '/description/1',
-  },
-  {
-    id: 2,
-    name: 'Établissement 2',
-    lat: 12.123,
-    lng: 15.046,
-    image: 'https://via.placeholder.com/150/33FF57/FFFFFF?text=Établissement+2',
-    details: 'Détails de l’établissement 2...',
-    rating: 3,  // Notation sur 5
-    link: '/description/2',
-  },
-  {
-    id: 3,
-    name: 'Établissement 3',
-    lat: 12.124,
-    lng: 15.047,
-    image: 'https://via.placeholder.com/150/3357FF/FFFFFF?text=Établissement+3',
-    details: 'Détails de l’établissement 3...',
-    rating: 5,  // Notation sur 5
-    link: '/description/3',
-  },
-];
+import axios from "axios"; // Importez Axios
 
 // Composant pour afficher les étoiles
 const Rating = ({ rating }) => {
@@ -54,6 +21,40 @@ const Rating = ({ rating }) => {
 };
 
 function Home() {
+
+  const [etablissements, setEtablissements] = useState([]); // Stocker les données des établissements
+  const [loading, setLoading] = useState(true); // Indiquer si les données sont en cours de chargement
+  const [error, setError] = useState(null); // Stocker les erreurs éventuelles
+
+  // Fonction pour récupérer les établissements depuis l'API
+  const fetchEtablissements = async () => {
+      try {
+          const response = await axios.get("http://localhost:8080/api/etablissements/all");
+          setEtablissements(response.data); // Stocker les établissements dans l'état
+      } catch (err) {
+          setError("Impossible de charger les établissements.");
+          console.error(err);
+      } finally {
+          setLoading(false); // Arrêter le chargement
+      }
+  };
+
+  // Utilisez useEffect pour récupérer les données au montage du composant
+  useEffect(() => {
+      fetchEtablissements();
+  }, []);
+
+/*   // Gestion du chargement et des erreurs
+  if (loading) {
+    return <div>Chargement en cours...</div>;
+  }
+  if (error) {
+      return <div>{error}</div>;
+  } */
+ 
+ 
+
+
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     infrastructure: '',
@@ -128,43 +129,46 @@ function Home() {
       </Navbar>
 
       <MapContainer
-        center={[12.122, 15.045]}
-        zoom={17}
+        center={[7.412208309284783, 13.544638768028618]}
+        zoom={20}
         style={{ height: '400px', marginTop: '20px' }}
+        
+        
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
         />
-        {establishments.map((place) => (
+        {etablissements.map((place) => (
           <Marker
-            key={place.id}
-            position={[place.lat, place.lng]}
+            key={place.idEtabli}
+            position={[place.localisation.coordonne.latitude, place.localisation.coordonne.longitude]}
             icon={customIcon}
+            
           >
-            <Popup>{place.name}</Popup>
+            <Popup>{place.nomEtabli}</Popup>
           </Marker>
         ))}
       </MapContainer>
 
       <Container className="mt-4">
         <Row>
-          {establishments.map((place) => (
-            <Col key={place.id} xs={12} sm={6} md={4} className="mb-3">
+          {etablissements.map((place) => (
+            <Col key={place.idEtabli} xs={12} sm={6} md={4} className="mb-3">
               <div className="d-flex flex-column border bg-light p-3" style={{ minHeight: '300px' }}>
                 <div className="flex-grow-1">
                   <img
-                    src={place.image}
-                    alt={place.name}
+                    src={"/images/"+place.image}
+                    alt={place.nomEtabli}
                     style={{ width: '100%', height: '150px', objectFit: 'cover' }}
                   />
                 </div>
                 <div className="bg-secondary text-white text-center p-3 mt-auto">
-                  <h5>{place.name}</h5>
-                  <p>{place.details}</p>
+                  <h5>{place.nomEtabli}</h5>
+                  <p>{place.nomEtabli}</p>
                   {/* Affichage des étoiles */}
-                  <Rating rating={place.rating} />
-                  <Link to={place.link}>
+                  <Rating rating={place.nomEtabli} />
+                  <Link to={"/description/"+place.idEtabli}>
                     <Button variant="primary" className="mt-2">Voir Plus</Button>
                   </Link>
                 </div>

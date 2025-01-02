@@ -1,11 +1,108 @@
-import React, {  useEffect,useState  } from 'react';
-import { Navbar, Nav, Form, Button, Container, Row, Col, Modal } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Navbar, Nav, Form, Button, Container, Row, Col, Modal, Card } from 'react-bootstrap';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
-import axios from "axios"; // Importez Axios
+
+// Fix Leaflet marker icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Données fictives des établissements à Ngaoundéré
+// Ajout d'établissements fictifs supplémentaires
+const establishments = [
+  {
+    id: 1,
+    name: 'Université de Ngaoundéré',
+    lat: 7.3256,
+    lng: 13.5815,
+    image: 'https://via.placeholder.com/150',
+    details: 'Université publique de Ngaoundéré.',
+    rating: 4.7,
+    infrastructure: 'Wifi',
+    languages: ['Français', 'Anglais'],
+    link: '/description/1',
+  },
+  {
+    id: 2,
+    name: 'Hôtel Transcam',
+    lat: 7.3600,
+    lng: 13.5650,
+    image: 'https://via.placeholder.com/150',
+    details: 'Hôtel confortable à Ngaoundéré.',
+    rating: 4.3,
+    infrastructure: 'Parking',
+    languages: ['Français'],
+    link: '/description/2',
+  },
+  {
+    id: 3,
+    name: 'Marché Central',
+    lat: 7.3190,
+    lng: 13.5830,
+    image: 'https://via.placeholder.com/150',
+    details: 'Marché animé au cœur de Ngaoundéré.',
+    rating: 4.0,
+    infrastructure: 'Wifi',
+    languages: ['Français', 'Anglais'],
+    link: '/description/3',
+  },
+  {
+    id: 4,
+    name: 'Centre Hospitalier Régional',
+    lat: 7.3250,
+    lng: 13.5900,
+    image: 'https://via.placeholder.com/150',
+    details: 'Hôpital moderne offrant des soins de qualité.',
+    rating: 4.5,
+    infrastructure: 'Parking',
+    languages: ['Français'],
+    link: '/description/4',
+  },
+  {
+    id: 5,
+    name: 'Parc National de Ngaoundéré',
+    lat: 7.3100,
+    lng: 13.6000,
+    image: 'https://via.placeholder.com/150',
+    details: 'Un parc naturel pour se détendre et explorer la faune locale.',
+    rating: 4.8,
+    infrastructure: 'Parking',
+    languages: ['Français', 'Anglais'],
+    link: '/description/5',
+  },
+  {
+    id: 6,
+    name: 'Bibliothèque Municipale',
+    lat: 7.3300,
+    lng: 13.5780,
+    image: 'https://via.placeholder.com/150',
+    details: 'Espace calme pour lire et travailler.',
+    rating: 4.2,
+    infrastructure: 'Wifi',
+    languages: ['Français'],
+    link: '/description/6',
+  },
+  {
+    id: 7,
+    name: 'Stade Omnisports',
+    lat: 7.3400,
+    lng: 13.5800,
+    image: 'https://via.placeholder.com/150',
+    details: 'Complexe sportif pour des événements locaux et régionaux.',
+    rating: 4.6,
+    infrastructure: 'Parking',
+    languages: ['Français', 'Anglais'],
+    link: '/description/7',
+  },
+];
+
 
 // Composant pour afficher les étoiles
 const Rating = ({ rating }) => {
@@ -20,70 +117,56 @@ const Rating = ({ rating }) => {
   return <div>{stars}</div>;
 };
 
-function Home() {
-
-  const [etablissements, setEtablissements] = useState([]); // Stocker les données des établissements
-  const [loading, setLoading] = useState(true); // Indiquer si les données sont en cours de chargement
-  const [error, setError] = useState(null); // Stocker les erreurs éventuelles
-
-  // Fonction pour récupérer les établissements depuis l'API
-  const fetchEtablissements = async () => {
-      try {
-          const response = await axios.get("http://localhost:8080/api/etablissements/all");
-          setEtablissements(response.data); // Stocker les établissements dans l'état
-      } catch (err) {
-          setError("Impossible de charger les établissements.");
-          console.error(err);
-      } finally {
-          setLoading(false); // Arrêter le chargement
-      }
-  };
-
-  // Utilisez useEffect pour récupérer les données au montage du composant
-  useEffect(() => {
-      fetchEtablissements();
-  }, []);
-
-/*   // Gestion du chargement et des erreurs
-  if (loading) {
-    return <div>Chargement en cours...</div>;
-  }
-  if (error) {
-      return <div>{error}</div>;
-  } */
- 
- 
-
-
-  const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
+const Home = () => {
+  const [filters, setFilters] = useState({
     infrastructure: '',
     language: '',
-    proximity: ''
+    proximity: '',
   });
 
-  const handleShow = () => setShowModal(true);
-  const handleClose = () => setShowModal(false);
+  const [filteredEstablishments, setFilteredEstablishments] = useState(establishments);
+  const [showFilters, setShowFilters] = useState(false); // Pour afficher ou masquer les filtres
 
-  const handleChange = (e) => {
+  const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFilters((prevFilters) => ({ ...prevFilters, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Données du formulaire :', formData); // afficher les elements tries 
-    handleClose();
+  const applyFilters = () => {
+    const { infrastructure, language, proximity } = filters;
+    const results = establishments.filter((est) => {
+      return (
+        (infrastructure ? est.infrastructure === infrastructure : true) &&
+        (language ? est.languages.includes(language) : true) &&
+        (proximity ? calculateProximity(est.lat, est.lng, proximity) : true)
+      );
+    });
+    setFilteredEstablishments(results);
+    setShowFilters(false); // Masquer les filtres après l'application
+  };
+
+  // Fonction pour calculer la proximité (en kilomètres)
+  const calculateProximity = (lat, lng, proximity) => {
+    const userLat = 7.3256; // Latitude approximative de l'utilisateur à Ngaoundéré
+    const userLng = 13.5815; // Longitude approximative de l'utilisateur à Ngaoundéré
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (lat - userLat) * (Math.PI / 180);
+    const dLng = (lng - userLng) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(userLat * (Math.PI / 180)) * Math.cos(lat * (Math.PI / 180)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance en kilomètres
+
+    return distance <= proximity;
   };
 
   const customIcon = new L.Icon({
     iconUrl: '/map-marker.png',
     iconSize: [50, 50],
     iconAnchor: [15, 30],
-    popupAnchor: [0, -30]
+    popupAnchor: [0, -30],
   });
 
   return (
@@ -112,11 +195,11 @@ function Home() {
             <Button variant="primary">Chercher</Button>
           </Form>
           <Nav className="ms-auto">
-            <Button variant="outline-primary" onClick={handleShow}>
+            <Button variant="outline-primary" onClick={() => setShowFilters(true)}>
               Filtrer
             </Button>
             <Button variant="outline-secondary" className="ms-3">
-              Contacter
+              <Link to="/TestIA">Contacter</Link>
             </Button>
             <Link to="/AuthForm">
               <Button variant="outline-primary" className="ms-3">Login</Button>
@@ -129,120 +212,106 @@ function Home() {
       </Navbar>
 
       <MapContainer
-        center={[7.412208309284783, 13.544638768028618]}
-        zoom={20}
+        center={[7.3256, 13.5815]} // Coordonnées de Ngaoundéré
+        zoom={15}
         style={{ height: '400px', marginTop: '20px' }}
-        
-        
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
         />
-        {etablissements.map((place) => (
+        {filteredEstablishments.map((place) => (
           <Marker
-            key={place.idEtabli}
-            position={[place.localisation.coordonne.latitude, place.localisation.coordonne.longitude]}
+            key={place.id}
+            position={[place.lat, place.lng]}
             icon={customIcon}
-            
           >
-            <Popup>{place.nomEtabli}</Popup>
+            <Popup>{place.name}</Popup>
           </Marker>
         ))}
       </MapContainer>
 
-      <Container className="mt-4">
-        <Row>
-          {etablissements.map((place) => (
-            <Col key={place.idEtabli} xs={12} sm={6} md={4} className="mb-3">
-              <div className="d-flex flex-column border bg-light p-3" style={{ minHeight: '300px' }}>
-                <div className="flex-grow-1">
-                  <img
-                    src={"/images/"+place.image}
-                    alt={place.nomEtabli}
-                    style={{ width: '100%', height: '150px', objectFit: 'cover' }}
-                  />
-                </div>
-                <div className="bg-secondary text-white text-center p-3 mt-auto">
-                  <h5>{place.nomEtabli}</h5>
-                  <p>{place.nomEtabli}</p>
-                  {/* Affichage des étoiles */}
-                  <Rating rating={place.nomEtabli} />
-                  <Link to={"/description/"+place.idEtabli}>
-                    <Button variant="primary" className="mt-2">Voir Plus</Button>
-                  </Link>
-                </div>
-              </div>
-            </Col>
-          ))}
-        </Row>
-      </Container>
-
-      <Modal show={showModal} onHide={handleClose}>
+      {/* Modal de filtre */}
+      <Modal show={showFilters} onHide={() => setShowFilters(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Filtrer les établissements</Modal.Title>
+          <Modal.Title>Filtres</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formInfrastructure">
+          <Form>
+            <Form.Group>
               <Form.Label>Infrastructure</Form.Label>
               <Form.Control
                 as="select"
                 name="infrastructure"
-                value={formData.infrastructure}
-                onChange={handleChange}
-                required
+                value={filters.infrastructure}
+                onChange={handleFilterChange}
               >
-                <option value="">Sélectionnez une option</option>
-                <option value="Salle informatique">Salle informatique</option>
-                <option value="Bibliotheque">Bibliotheque</option>
-                <option value="Terrain de sport">Terrain de sport</option>
-                <option value="Cantine">Cantine</option>
+                <option value="">-- Tous --</option>
+                <option value="Wifi">Wifi</option>
+                <option value="Parking">Parking</option>
               </Form.Control>
             </Form.Group>
-
-            <Form.Group controlId="formLanguage" className="mt-3">
+            <Form.Group>
               <Form.Label>Langue</Form.Label>
               <Form.Control
                 as="select"
                 name="language"
-                value={formData.language}
-                onChange={handleChange}
-                required
+                value={filters.language}
+                onChange={handleFilterChange}
               >
-                <option value="">Sélectionnez une langue</option>
-                <option value="francais">Français</option>
-                <option value="anglais">Anglais</option>
-                <option value="bilingue">Bilingue</option>
+                <option value="">-- Toutes --</option>
+                <option value="Français">Français</option>
+                <option value="Anglais">Anglais</option>
+                <option value="Bilingue">Bilingue</option>
               </Form.Control>
             </Form.Group>
-
-            <Form.Group controlId="formProximity" className="mt-3">
+            <Form.Group>
               <Form.Label>Proximité</Form.Label>
               <Form.Control
                 as="select"
                 name="proximity"
-                value={formData.proximity}
-                onChange={handleChange}
-                required
+                value={filters.proximity}
+                onChange={handleFilterChange}
               >
-                <option value="">Sélectionnez une proximité</option>
-                <option value="5km">5 km</option>
-                <option value="10km">10 km</option>
-                <option value="15km">15 km</option>
+                <option value="">-- Sélectionner la proximité --</option>
+                <option value="5">5 km</option>
+                <option value="10">10 km</option>
+                <option value="15">15 km</option>
               </Form.Control>
             </Form.Group>
-
-            <div className="mt-3 text-center">
-              <Button variant="primary" type="submit">
-                Appliquer les filtres
-              </Button>
-            </div>
           </Form>
         </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowFilters(false)}>
+            Fermer
+          </Button>
+          <Button variant="primary" onClick={applyFilters}>
+            Appliquer les filtres
+          </Button>
+        </Modal.Footer>
       </Modal>
+
+      <Container className="mt-4">
+        <Row>
+          {filteredEstablishments.map((place) => (
+            <Col key={place.id} xs={12} sm={6} md={4} className="mb-3">
+              <Card className="h-100">
+                <Card.Img variant="top" src={place.image} />
+                <Card.Body>
+                  <Card.Title>{place.name}</Card.Title>
+                  <Card.Text>{place.details}</Card.Text>
+                  <Rating rating={place.rating} />
+                  <Link to={place.link}>
+                    <Button variant="primary" className="mt-2">Voir Plus</Button>
+                  </Link>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
     </div>
   );
-}
+};
 
 export default Home;
